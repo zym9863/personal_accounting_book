@@ -1,0 +1,176 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # 触发条件：推送版本标签（如 v1.0.0）
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'  # 可以根据需要调整版本
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Build Windows executable
+      run: flutter build windows --release
+      
+    - name: Create Windows artifact
+      run: |
+        mkdir release-windows
+        xcopy build\windows\x64\runner\Release release-windows\personal_accounting_book-windows /E /I
+        
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-release
+        path: release-windows/
+
+  build-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'  # 可以根据需要调整版本
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Build Android APK (split per ABI)
+      run: flutter build apk --release --split-per-abi
+      
+    - name: Upload Android artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-release
+        path: build/app/outputs/flutter-apk/*.apk
+
+  release:
+    needs: [build-windows, build-android]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')  # 只在推送标签时创建release
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Download Windows artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: windows-release
+        path: ./windows-release
+        
+    - name: Download Android artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: android-release
+        path: ./android-release
+        
+    - name: Create Windows zip
+      run: |
+        cd windows-release
+        zip -r ../personal_accounting_book-windows-${{ github.ref_name }}.zip personal_accounting_book-windows/
+        
+    - name: Get release version
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ steps.get_version.outputs.VERSION }}
+        body: |
+          ## 📱 Personal Accounting Book ${{ steps.get_version.outputs.VERSION }}
+          
+          ### 🎉 What's New
+          - Bug fixes and improvements
+          
+          ### 📦 Downloads
+          - **Windows**: Download the zip file and extract it to run the executable
+          - **Android**: Choose the APK file that matches your device architecture:
+            - `app-arm64-v8a-release.apk` - For most modern Android devices (64-bit ARM)
+            - `app-armeabi-v7a-release.apk` - For older Android devices (32-bit ARM)
+            - `app-x86_64-release.apk` - For Android x86_64 devices (rare)
+          
+          ### 🔧 Installation
+          **Windows:**
+          1. Download the Windows zip file
+          2. Extract to your desired location
+          3. Run `personal_accounting_book.exe`
+          
+          **Android:**
+          1. Download the appropriate APK for your device
+          2. Enable "Install from unknown sources" in your device settings
+          3. Install the APK file
+          
+          ---
+          Built with ❤️ using Flutter
+        draft: false
+        prerelease: false
+        
+    - name: Upload Windows Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./personal_accounting_book-windows-${{ github.ref_name }}.zip
+        asset_name: personal_accounting_book-windows-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
+        
+    - name: Upload Android ARM64 Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./android-release/app-arm64-v8a-release.apk
+        asset_name: personal_accounting_book-arm64-v8a-${{ steps.get_version.outputs.VERSION }}.apk
+        asset_content_type: application/vnd.android.package-archive
+        
+    - name: Upload Android ARMv7 Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./android-release/app-armeabi-v7a-release.apk
+        asset_name: personal_accounting_book-armeabi-v7a-${{ steps.get_version.outputs.VERSION }}.apk
+        asset_content_type: application/vnd.android.package-archive
+        
+    - name: Upload Android x86_64 Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./android-release/app-x86_64-release.apk
+        asset_name: personal_accounting_book-x86_64-${{ steps.get_version.outputs.VERSION }}.apk
+        asset_content_type: application/vnd.android.package-archive
