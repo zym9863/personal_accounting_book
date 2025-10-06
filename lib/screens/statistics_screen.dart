@@ -29,14 +29,36 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Column(
       children: [
-        TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: '收入'),
-            Tab(text: '支出'),
-          ],
+        Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: TabBar(
+            controller: _tabController,
+            indicatorColor: colorScheme.primary,
+            indicatorWeight: 3,
+            labelColor: colorScheme.primary,
+            unselectedLabelColor: Colors.grey,
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+            tabs: const [
+              Tab(text: '收入'),
+              Tab(text: '支出'),
+            ],
+          ),
         ),
         Expanded(
           child: TabBarView(
@@ -55,8 +77,26 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     return Consumer<TransactionProvider>(
       builder: (context, provider, child) {
         if (provider.incomeTransactions.isEmpty) {
-          return const Center(
-            child: Text('暂无收入记录'),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.trending_up,
+                  size: 80,
+                  color: Colors.green.withOpacity(0.3),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '暂无收入记录',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           );
         }
         
@@ -69,22 +109,44 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                 '总收入',
                 provider.totalIncome,
                 Colors.green,
-                Icons.arrow_upward,
+                Icons.arrow_upward_rounded,
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 '收入分类统计',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                height: 300,
-                child: _buildPieChart(provider.incomeCategorySum, Colors.green),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: SizedBox(
+                  height: 300,
+                  child: _buildPieChart(provider.incomeCategorySum, Colors.green),
+                ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 '收入记录',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
               ),
               const SizedBox(height: 16),
               _buildTransactionList(provider.incomeTransactions),
@@ -99,8 +161,26 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     return Consumer<TransactionProvider>(
       builder: (context, provider, child) {
         if (provider.expenseTransactions.isEmpty) {
-          return const Center(
-            child: Text('暂无支出记录'),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.trending_down,
+                  size: 80,
+                  color: Colors.red.withOpacity(0.3),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '暂无支出记录',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           );
         }
         
@@ -113,22 +193,44 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                 '总支出',
                 provider.totalExpense,
                 Colors.red,
-                Icons.arrow_downward,
+                Icons.arrow_downward_rounded,
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 '支出分类统计',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                height: 300,
-                child: _buildPieChart(provider.expenseCategorySum, Colors.red),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: SizedBox(
+                  height: 300,
+                  child: _buildPieChart(provider.expenseCategorySum, Colors.red),
+                ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 '支出记录',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
               ),
               const SizedBox(height: 16),
               _buildTransactionList(provider.expenseTransactions),
@@ -140,34 +242,65 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
   }
 
   Widget _buildSummaryCard(String title, double amount, Color color, IconData icon) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: color.withOpacity(0.2),
-              radius: 24,
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.8), color],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Card(
+        elevation: 0,
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '¥${amount.toStringAsFixed(2)}',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+                child: Icon(icon, color: Colors.white, size: 32),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '¥${amount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -275,16 +408,54 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         final transaction = transactions[index];
         final color = transaction.type == TransactionType.income ? Colors.green : Colors.red;
         
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: color.withOpacity(0.2),
-            child: Icon(_getCategoryIcon(transaction.category), color: color),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          title: Text(transaction.title),
-          subtitle: Text(formatter.format(transaction.date)),
-          trailing: Text(
-            '¥${transaction.amount.toStringAsFixed(2)}',
-            style: TextStyle(color: color, fontWeight: FontWeight.bold),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(_getCategoryIcon(transaction.category), color: color),
+            ),
+            title: Text(
+              transaction.title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                formatter.format(transaction.date),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+            trailing: Text(
+              '¥${transaction.amount.toStringAsFixed(2)}',
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
           ),
         );
       },
