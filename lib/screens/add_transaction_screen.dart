@@ -88,10 +88,25 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? '编辑交易' : '添加交易'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(
+          _isEditing ? '编辑交易' : '添加交易',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colorScheme.primary, colorScheme.primaryContainer],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -102,19 +117,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 交易类型选择
-              const Text('交易类型', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              Text(
+                '交易类型',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 12),
               SegmentedButton<TransactionType>(
                 segments: const [
                   ButtonSegment(
                     value: TransactionType.expense,
                     label: Text('支出'),
-                    icon: Icon(Icons.arrow_downward),
+                    icon: Icon(Icons.arrow_downward_rounded),
                   ),
                   ButtonSegment(
                     value: TransactionType.income,
                     label: Text('收入'),
-                    icon: Icon(Icons.arrow_upward),
+                    icon: Icon(Icons.arrow_upward_rounded),
                   ),
                 ],
                 selected: {_selectedType},
@@ -129,15 +151,39 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     }
                   });
                 },
+                style: ButtonStyle(
+                  side: MaterialStateProperty.resolveWith((states) {
+                    if (states.contains(MaterialState.selected)) {
+                      return BorderSide(
+                        color: colorScheme.primary,
+                        width: 2,
+                      );
+                    }
+                    return BorderSide(color: Colors.grey[300]!);
+                  }),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               
               // 标题
+              Text(
+                '标题',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: '标题',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: '输入交易标题',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -146,15 +192,28 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               
               // 金额
+              Text(
+                '金额',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: '金额',
-                  border: OutlineInputBorder(),
-                  prefixText: '¥',
+                decoration: InputDecoration(
+                  hintText: '0.00',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  prefixIcon: const Icon(Icons.attach_money),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
@@ -170,40 +229,63 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               
               // 日期选择
-              const Text('日期', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              Text(
+                '日期',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 12),
               InkWell(
                 onTap: _selectDate,
+                borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey[50],
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today),
-                      const SizedBox(width: 8),
+                      Icon(Icons.calendar_today, color: colorScheme.primary),
+                      const SizedBox(width: 12),
                       Text(
                         DateFormat('yyyy-MM-dd').format(_selectedDate),
-                        style: const TextStyle(fontSize: 16),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               
               // 分类选择
-              const Text('分类', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              Text(
+                '分类',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 12),
               DropdownButtonFormField<Category>(
                 value: _selectedCategory,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
                 ),
                 items: _getCategoryItems(),
                 onChanged: (Category? value) {
@@ -214,30 +296,68 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   }
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               
               // 备注
+              Text(
+                '备注 (可选)',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _noteController,
-                decoration: const InputDecoration(
-                  labelText: '备注 (可选)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: '输入备注信息',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
                 ),
                 maxLines: 3,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               
               // 提交按钮
-              SizedBox(
+              Container(
                 width: double.infinity,
-                height: 50,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [colorScheme.primary, colorScheme.secondary],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: Text(_isEditing ? '保存修改' : '添加交易'),
+                  child: Text(
+                    _isEditing ? '保存修改' : '添加交易',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ],

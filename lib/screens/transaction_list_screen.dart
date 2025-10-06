@@ -13,12 +13,39 @@ class TransactionListScreen extends StatelessWidget {
     return Consumer<TransactionProvider>(
       builder: (context, provider, child) {
         if (provider.transactions.isEmpty) {
-          return const Center(
-            child: Text('暂无交易记录，点击下方 + 按钮添加'),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.receipt_long,
+                  size: 80,
+                  color: Colors.grey.withOpacity(0.3),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '暂无交易记录',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '点击下方 + 按钮添加',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
           );
         }
         
         return ListView.builder(
+          padding: const EdgeInsets.all(8),
           itemCount: provider.transactions.length,
           itemBuilder: (context, index) {
             final transaction = provider.transactions[index];
@@ -35,60 +62,70 @@ class TransactionListScreen extends StatelessWidget {
     final icon = _getCategoryIcon(transaction.category);
     
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.2),
-          child: Icon(icon, color: color),
-        ),
-        title: Text(transaction.title),
-        subtitle: Text('${formatter.format(transaction.date)} · ${_getCategoryName(transaction.category)}'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${transaction.type == TransactionType.income ? '+' : '-'}¥${transaction.amount.toStringAsFixed(2)}',
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blue),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddTransactionScreen(transaction: transaction),
-                  ),
-                ).then((_) {
-                  provider.loadTransactions();
-                });
-              },
-              tooltip: '编辑',
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                provider.deleteTransaction(transaction.id!);
-              },
-              tooltip: '删除',
-            ),
-          ],
-        ),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
         onTap: () {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text(transaction.title),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: color.withOpacity(0.2),
+                    child: Icon(icon, color: color),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      transaction.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('金额: ${transaction.type == TransactionType.income ? '+' : '-'}¥${transaction.amount.toStringAsFixed(2)}'),
-                  Text('日期: ${formatter.format(transaction.date)}'),
-                  Text('类型: ${transaction.type == TransactionType.income ? '收入' : '支出'}'),
-                  Text('分类: ${_getCategoryName(transaction.category)}'),
-                  if (transaction.note != null && transaction.note!.isNotEmpty)
-                    Text('备注: ${transaction.note}'),
+                  _buildDetailRow(
+                    Icons.payments,
+                    '金额',
+                    '${transaction.type == TransactionType.income ? '+' : '-'}¥${transaction.amount.toStringAsFixed(2)}',
+                    color,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildDetailRow(
+                    Icons.calendar_today,
+                    '日期',
+                    formatter.format(transaction.date),
+                    Colors.blue,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildDetailRow(
+                    Icons.category,
+                    '分类',
+                    _getCategoryName(transaction.category),
+                    Colors.orange,
+                  ),
+                  if (transaction.note != null && transaction.note!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _buildDetailRow(
+                      Icons.note,
+                      '备注',
+                      transaction.note!,
+                      Colors.grey,
+                    ),
+                  ],
                 ],
               ),
               actions: [
@@ -100,7 +137,143 @@ class TransactionListScreen extends StatelessWidget {
             ),
           );
         },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      transaction.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${formatter.format(transaction.date)} · ${_getCategoryName(transaction.category)}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${transaction.type == TransactionType.income ? '+' : '-'}¥${transaction.amount.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 20),
+                        color: Colors.blue,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddTransactionScreen(transaction: transaction),
+                            ),
+                          ).then((_) {
+                            provider.loadTransactions();
+                          });
+                        },
+                        tooltip: '编辑',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        color: Colors.red,
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              title: const Text('确认删除'),
+                              content: const Text('确定要删除这条交易记录吗？'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('取消'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    provider.deleteTransaction(transaction.id!);
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text(
+                                    '删除',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        tooltip: '删除',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(width: 8),
+        Text(
+          '$label: ',
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[700],
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
